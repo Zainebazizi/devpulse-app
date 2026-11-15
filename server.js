@@ -5,6 +5,7 @@ import bugRoutes from './routes/BugRoutes.js';
 import logRoutes from './routes/logRoutes.js';
 import cors from 'cors';
 import errorHandler from './middleware/errorHandler.js';
+
 dotenv.config();
 
 const app = express();
@@ -23,17 +24,16 @@ pool.connect()
   .then(() => console.log('🚀 Connected to Supabase PostgreSQL'))
   .catch((err) => console.error('❌ Connection error:', err));
 
-// تمرير الـ pool للـ routes إذا أردت استخدامها، أو اعتمادها عبر استيرادها
+// ربط المسارات (Routes)
 app.use('/api/logs', logRoutes);
 app.use('/api/bugs', bugRoutes);
 
 app.use(errorHandler); 
 
-const PORT = process.env.PORT || 5000;
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
 
-// تشغيل السيرفر ليستمع للطلبات على المنفذ المناسب للاستضافة
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-});
-
-export default pool;
+// تصدير تطبيق الـ Express فقط ليعمل على Vercel Serverless Functions
+export default app;
