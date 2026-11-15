@@ -10,6 +10,9 @@ import {
   Moon
 } from 'lucide-react';
 
+// تحديد رابط الـ API تلقائياً لمنع أي undefined
+const API_URL = import.meta.env.VITE_API_URL || '';
+
 export default function Dashboard({ onNavigateToJournal, theme, toggleTheme }) {
   const [logs, setLogs] = useState([]);
   const [bugs, setBugs] = useState([]);
@@ -25,8 +28,8 @@ export default function Dashboard({ onNavigateToJournal, theme, toggleTheme }) {
   const fetchDashboardData = async () => {
     try {
       const [logsRes, bugsRes] = await Promise.all([
-        fetch(`${import.meta.env.VITE_API_URL}/logs`),
-        fetch(`${import.meta.env.VITE_API_URL}/bugs`)
+        fetch(`${API_URL}/api/logs`),
+        fetch(`${API_URL}/api/bugs`)
       ]);
 
       if (logsRes.ok) setLogs(await logsRes.json());
@@ -40,19 +43,20 @@ export default function Dashboard({ onNavigateToJournal, theme, toggleTheme }) {
   useEffect(() => {
     fetchDashboardData();
   }, []);
-  const handleDelete = async (id) => {
-  try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/logs/${id}`, {
-      method: 'DELETE',
-    });
 
-    if (res.ok) {
-      fetchDashboardData();   
+  const handleDelete = async (id) => {
+    try {
+      const res = await fetch(`${API_URL}/api/logs/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        fetchDashboardData();   
+      }
+    } catch (err) {
+      console.error('Error deleting log:', err);
     }
-  } catch (err) {
-    console.error('Error deleting log:', err);
-  }
-};
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -61,7 +65,7 @@ export default function Dashboard({ onNavigateToJournal, theme, toggleTheme }) {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/logs`, {
+      const res = await fetch(`${API_URL}/api/logs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -89,7 +93,6 @@ export default function Dashboard({ onNavigateToJournal, theme, toggleTheme }) {
     }
   };
 
-
   const getBadgeStyle = (level = '') => {
     const l = level.toLowerCase();
     if (l.includes('backend')) return isDark ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-700';
@@ -103,7 +106,7 @@ export default function Dashboard({ onNavigateToJournal, theme, toggleTheme }) {
   const totalHours = logs.reduce((sum, log) => sum + (log.hours || 0), 0);
   const uniqueProjects = new Set(logs.map((log) => log.title)).size;
   const uniqueActivityDays = new Set(
-    logs.map((log) => new Date(log.createdAt || Date.now()).toDateString())
+    logs.map((log) => new Date(log.created_at || Date.now()).toDateString())
   ).size;
 
   return (
@@ -167,9 +170,7 @@ export default function Dashboard({ onNavigateToJournal, theme, toggleTheme }) {
           </div>
         )}
 
-  
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
           <div className={`border p-4 md:p-5 rounded-2xl space-y-3 ${
             isDark ? 'bg-[#121215] border-white/5' : 'bg-white border-gray-200 shadow-sm'
           }`}>
@@ -217,9 +218,7 @@ export default function Dashboard({ onNavigateToJournal, theme, toggleTheme }) {
               <div className={`text-[11px] mt-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Activity days</div>
             </div>
           </div>
-
         </div>
-
 
         <form onSubmit={handleSubmit} className={`border rounded-2xl p-5 md:p-6 space-y-4 ${
           isDark ? 'bg-[#121215] border-white/5' : 'bg-white border-gray-200 shadow-sm'
@@ -303,28 +302,28 @@ export default function Dashboard({ onNavigateToJournal, theme, toggleTheme }) {
             {logs.length === 0 ? (
               <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>No sessions recorded yet.</p>
             ) : (
-              logs.map((log) => (
-                <div key={log._id} className={`border-b pb-3 space-y-1.5 last:border-none last:pb-0 ${
+              logs.log?.length !== 0 && logs.map((log) => (
+                <div key={log.id} className={`border-b pb-3 space-y-1.5 last:border-none last:pb-0 ${
                   isDark ? 'border-white/5' : 'border-gray-100'
                 }`}>
-  <div className="flex items-center justify-between">
-  <div className="flex items-center gap-2">
-    <span className="font-semibold text-xs">{log.title}</span>
-    <span className={`text-[10px] px-2 py-0.5 rounded-md font-medium ${getBadgeStyle(log.level)}`}>
-      {log.level || 'General'}
-    </span>
-  </div>
-  <button 
-    onClick={() => handleDelete(log._id)} 
-    className="bg-red-500 hover:bg-red-600 text-white text-xs px-2.5 py-1 rounded transition-colors"
-  >
-    Delete
-  </button>
-</div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-xs">{log.title}</span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-md font-medium ${getBadgeStyle(log.level)}`}>
+                        {log.level || 'General'}
+                      </span>
+                    </div>
+                    <button 
+                      onClick={() => handleDelete(log.id)} 
+                      className="bg-red-500 hover:bg-red-600 text-white text-xs px-2.5 py-1 rounded transition-colors"
+                    >
+                      Delete
+                    </button>
+                  </div>
 
                   <div className={`text-[11px] flex items-center gap-1.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                     <span>
-                      {new Date(log.createdAt || Date.now()).toLocaleDateString('en-US', {
+                      {new Date(log.created_at || Date.now()).toLocaleDateString('en-US', {
                         weekday: 'short',
                         month: 'short',
                         day: 'numeric'

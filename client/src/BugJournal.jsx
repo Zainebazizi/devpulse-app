@@ -9,6 +9,9 @@ import {
   Moon
 } from 'lucide-react';
 
+// استخدام متغير بيئة آمن لمنع ظهور undefined
+const API_URL = import.meta.env.VITE_API_URL || '';
+
 export default function BugJournal({ onNavigateToDashboard, theme, toggleTheme }) {
   const [bugs, setBugs] = useState([]);
   const [sessions, setSessions] = useState([]);
@@ -26,8 +29,8 @@ export default function BugJournal({ onNavigateToDashboard, theme, toggleTheme }
   const fetchBugsAndSessions = async () => {
     try {
       const [bugsRes, logsRes] = await Promise.all([
-       fetch(`${import.meta.env.VITE_API_URL}/bugs?search=${searchQuery}`),
-        fetch(`${import.meta.env.VITE_API_URL}/logs`)
+        fetch(`${API_URL}/api/bugs?search=${searchQuery}`),
+        fetch(`${API_URL}/api/logs`)
       ]);
 
       if (bugsRes.ok) {
@@ -47,41 +50,40 @@ export default function BugJournal({ onNavigateToDashboard, theme, toggleTheme }
     }
   };
 
+  useEffect(() => {
+    let ignore = false;
 
-useEffect(() => {
-  let ignore = false;
+    const timeoutId = setTimeout(async () => {
+      try {
+        const [bugsRes, logsRes] = await Promise.all([
+          fetch(`${API_URL}/api/bugs?search=${searchQuery}`),
+          fetch(`${API_URL}/api/logs`)
+        ]);
 
-  const timeoutId = setTimeout(async () => {
-    try {
-      const [bugsRes, logsRes] = await Promise.all([
-        fetch(`${import.meta.env.VITE_API_URL}/bugs?search=${searchQuery}`),
-        fetch(`${import.meta.env.VITE_API_URL}/logs`)
-      ]);
+        if (ignore) return;
 
-      if (ignore) return;
-
-      if (bugsRes.ok) {
-        const bugsData = await bugsRes.json();
-        setBugs(bugsData);
-      }
-
-      if (logsRes.ok) {
-        const logsData = await logsRes.json();
-        setSessions(logsData);
-        if (logsData.length > 0) {
-          setSelectedSession(logsData[0].title || '');
+        if (bugsRes.ok) {
+          const bugsData = await bugsRes.json();
+          setBugs(bugsData);
         }
-      }
-    } catch (err) {
-      console.error('Error fetching data:', err);
-    }
-  }, 300);
 
-  return () => {
-    ignore = true;
-    clearTimeout(timeoutId);
-  };
-}, [searchQuery]);
+        if (logsRes.ok) {
+          const logsData = await logsRes.json();
+          setSessions(logsData);
+          if (logsData.length > 0) {
+            setSelectedSession(logsData[0].title || '');
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching data:', err);
+      }
+    }, 300);
+
+    return () => {
+      ignore = true;
+      clearTimeout(timeoutId);
+    };
+  }, [searchQuery]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -89,13 +91,13 @@ useEffect(() => {
 
     setLoading(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/bugs`, {
+      const res = await fetch(`${API_URL}/api/bugs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title,
           session: selectedSession,
-          originalError,
+          originalerror: originalError, // تم مطابقتها مع اسم العمود في قاعدة البيانات
           solution,
           rating,
           priority: 'medium',
@@ -116,21 +118,20 @@ useEffect(() => {
       setLoading(false);
     }
   };
+
   const handleDelete = async (id) => {
-  try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/bugs/${id}`, {
-      method: 'DELETE',
-    });
+    try {
+      const res = await fetch(`${API_URL}/api/bugs/${id}`, {
+        method: 'DELETE',
+      });
 
-    if (res.ok) {
-      fetchBugsAndSessions();
+      if (res.ok) {
+        fetchBugsAndSessions();
+      }
+    } catch (err) {
+      console.error('Error deleting bug:', err);
     }
-  } catch (err) {
-    console.error('Error deleting bug:', err);
-  }
-};
-
-
+  };
 
   return (
     <div className={`min-h-screen font-sans px-4 sm:px-6 py-6 md:py-8 transition-colors duration-200 ${
@@ -204,15 +205,15 @@ useEffect(() => {
           onSubmit={handleSubmit}
         />
 
-<BugList
-  isDark={isDark}
-  filteredBugs={bugs}
-  searchQuery={searchQuery}
-  setSearchQuery={setSearchQuery}
-  onDelete={handleDelete}
-/>
-       
-     </div>
+        <BugList
+          isDark={isDark}
+          filteredBugs={bugs}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          onDelete={handleDelete}
+        />
+        
+      </div>
     </div>
   );
 }
