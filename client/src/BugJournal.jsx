@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import logoImg from './assets/logo.png';
 import BugForm from './BugForm.jsx';
 import BugList from './BugList.jsx';
+import { fetchBugs, createBug, deleteBug } from './api/bugApi.js';
+import { fetchLogs, createLog } from './api/logApi.js';
 import { 
   Bug, 
   LayoutDashboard, 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import logoImg from './assets/logo.png';
+import { fetchLogs, createLog } from './api/logApi.js';
 import { 
   Bug, 
   LayoutDashboard, 
@@ -302,7 +303,7 @@ export default function Dashboard({ onNavigateToJournal, theme, toggleTheme }) {
             {logs.length === 0 ? (
               <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>No sessions recorded yet.</p>
             ) : (
-              logs.log?.length !== 0 && logs.map((log) => (
+              logs.map((log) => (
                 <div key={log.id} className={`border-b pb-3 space-y-1.5 last:border-none last:pb-0 ${
                   isDark ? 'border-white/5' : 'border-gray-100'
                 }`}>
