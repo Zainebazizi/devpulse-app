@@ -9,8 +9,8 @@ app.use(cors());
 app.use(express.json());
 
 // مسارات الـ API الأساسية
-app.use('/api/bugs', bugRoutes);
-app.use('/api/logs', logRoutes);
+app.use('/logs', logRoutes);
+app.use('/bugs', bugRoutes);
 
 app.use(errorHandler);
 
