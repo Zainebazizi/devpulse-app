@@ -1,7 +1,7 @@
 import pool from '../config/db.js';
 import asyncHandler from '../middleware/asyncHandler.js';
 
-// جلب جميع الـ Bugs (مع دعم البحث بالعنوان والترتيب من الأحدث للأقدم)
+// جلب جميع الـ Bugs
 export const getBugs = asyncHandler(async (req, res) => {
   const { search } = req.query;
   
@@ -9,9 +9,8 @@ export const getBugs = asyncHandler(async (req, res) => {
   let queryParams = [];
 
   if (search) {
-    query += ' WHERE title ILIKE $1';
+    query += ' WHERE title ILIKE $1 ORDER BY created_at DESC';
     queryParams.push(`%${search}%`);
-    query += ' ORDER BY created_at DESC';
   } else {
     query += ' ORDER BY created_at DESC';
   }
@@ -34,15 +33,15 @@ export const getBugById = asyncHandler(async (req, res) => {
 
 // إنشاء Bug جديد
 export const createBug = asyncHandler(async (req, res) => {
-  const { title, session, originalError, solution, rating, priority, status } = req.body;
+  const { title, session, originalerror, solution, rating, priority, status } = req.body;
   
   const query = `
-    INSERT INTO bugs (title, session, originalError, solution, rating, priority, status) 
+    INSERT INTO bugs (title, session, originalerror, solution, rating, priority, status) 
     VALUES ($1, $2, $3, $4, $5, $6, $7) 
     RETURNING *
   `;
   
-  const values = [title, session, originalError, solution, rating, priority, status || 'open'];
+  const values = [title, session, originalerror, solution, rating, priority, status || 'open'];
   const result = await pool.query(query, values);
   
   res.status(201).json(result.rows[0]);
@@ -51,13 +50,13 @@ export const createBug = asyncHandler(async (req, res) => {
 // تحديث Bug
 export const updateBug = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { title, session, originalError, solution, rating, priority, status } = req.body;
+  const { title, session, originalerror, solution, rating, priority, status } = req.body;
 
   const query = `
     UPDATE bugs 
     SET title = COALESCE($1, title), 
         session = COALESCE($2, session), 
-        originalError = COALESCE($3, originalError), 
+        originalerror = COALESCE($3, originalerror), 
         solution = COALESCE($4, solution), 
         rating = COALESCE($5, rating), 
         priority = COALESCE($6, priority), 
@@ -66,7 +65,7 @@ export const updateBug = asyncHandler(async (req, res) => {
     RETURNING *
   `;
 
-  const values = [title, session, originalError, solution, rating, priority, status, id];
+  const values = [title, session, originalerror, solution, rating, priority, status, id];
   const result = await pool.query(query, values);
 
   if (result.rows.length === 0) {
