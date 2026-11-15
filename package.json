@@ -1,16 +1,12 @@
+
 {
   "name": "devpulse-app",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "preview": "vite preview"
    
-    "build": "vite build",
-    "lint": "oxlint",
-  
-    "preview": "vite preview",
-    "start": "node server.js",
-  "dev": "node --watch server.js"
   },
   "dependencies": {
     "cors": "^2.8.6",

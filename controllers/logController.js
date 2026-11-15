@@ -34,7 +34,30 @@ export const createLog = asyncHandler(async (req, res) => {
   
   res.status(201).json(result.rows[0]);
 });
+// Update Log
+export const updateLog = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { title, level, message, hours } = req.body;
 
+  const query = `
+    UPDATE logs
+    SET title = COALESCE($1, title),
+        level = COALESCE($2, level),
+        message = COALESCE($3, message),
+        hours = COALESCE($4, hours)
+    WHERE id = $5
+    RETURNING *
+  `;
+
+  const values = [title, level, message, hours, id];
+  const result = await pool.query(query, values);
+
+  if (result.rows.length === 0) {
+    return res.status(404).json({ message: 'Log not found' });
+  }
+
+  res.json(result.rows[0]);
+});
 // حذف Log
 export const deleteLog = asyncHandler(async (req, res) => {
   const { id } = req.params;
