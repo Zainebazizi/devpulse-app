@@ -1,4 +1,7 @@
-const BASE_URL = 'http://localhost:5000/api/logs';
+// تحديد الـ BASE_URL ديناميكياً
+const BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://your-backend-url.vercel.app/api/logs' // (ضع رابط الباك إند الحقيقي هنا لاحقاً)
+  : 'http://localhost:5000/api/logs';
 
 export const fetchLogs = async () => {
   const res = await fetch(BASE_URL);

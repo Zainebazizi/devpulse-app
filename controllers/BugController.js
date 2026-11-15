@@ -1,4 +1,4 @@
-import pool from '../server.js';
+import pool from '../config/db.js';
 import asyncHandler from '../middleware/asyncHandler.js';
 
 // جلب جميع الـ Bugs (مع دعم البحث بالعنوان والترتيب من الأحدث للأقدم)
